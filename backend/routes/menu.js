@@ -322,6 +322,119 @@ router.post('/admin/items', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * @route PATCH /admin/menu/items/:id
+ * @desc Modifier un plat existant
+ * @access Admin uniquement
+ */
+router.patch('/admin/items/:id', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { category_id, name, description, price, is_available } = req.body;
 
+    // Vérifier si le plat existe
+    const item = await MenuItem.findByPk(id);
+    if (!item) {
+      return res.status(404).json({ 
+        error: 'Plat non trouvé' 
+      });
+    }
+
+    // Validation des données si elles sont fournies
+    if (name !== undefined) {
+      if (!name || name.trim().length === 0) {
+        return res.status(400).json({ 
+          error: 'Le nom du plat ne peut pas être vide' 
+        });
+      }
+      if (name.length > 150) {
+        return res.status(400).json({ 
+          error: 'Le nom du plat ne peut pas dépasser 150 caractères' 
+        });
+      }
+    }
+
+    if (price !== undefined) {
+      if (isNaN(price) || parseFloat(price) < 0) {
+        return res.status(400).json({ 
+          error: 'Le prix doit être un nombre positif' 
+        });
+      }
+    }
+
+    if (category_id !== undefined) {
+      const category = await MenuCategory.findByPk(category_id);
+      if (!category) {
+        return res.status(404).json({ 
+          error: 'Catégorie non trouvée' 
+        });
+      }
+      if (!category.is_active) {
+        return res.status(400).json({ 
+          error: 'Impossible d\'assigner un plat à une catégorie inactive' 
+        });
+      }
+    }
+
+    // Mise à jour des champs modifiés
+    const updateData = {};
+    if (category_id !== undefined) updateData.category_id = parseInt(category_id);
+    if (name !== undefined) updateData.name = name.trim();
+    if (description !== undefined) updateData.description = description ? description.trim() : null;
+    if (price !== undefined) updateData.price = parseFloat(price);
+    if (is_available !== undefined) updateData.is_available = is_available;
+
+    await item.update(updateData);
+
+    // Récupérer le plat mis à jour avec sa catégorie
+    const updatedItem = await MenuItem.findByPk(id, {
+      include: [{
+        model: MenuCategory,
+        as: 'category',
+        attributes: ['id', 'name']
+      }]
+    });
+
+    res.json({
+      message: 'Plat mis à jour avec succès',
+      item: updatedItem
+    });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du plat:', error);
+    res.status(500).json({ 
+      error: 'Erreur serveur lors de la mise à jour du plat' 
+    });
+  }
+});
+
+/**
+ * @route DELETE /admin/menu/items/:id
+ * @desc Supprimer un plat
+ * @access Admin uniquement
+ */
+router.delete('/admin/items/:id', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Vérifier si le plat existe
+    const item = await MenuItem.findByPk(id);
+    if (!item) {
+      return res.status(404).json({ 
+        error: 'Plat non trouvé' 
+      });
+    }
+
+    await item.destroy();
+
+    res.json({
+      message: 'Plat supprimé avec succès'
+    });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du plat:', error);
+    res.status(500).json({ 
+      error: 'Erreur serveur lors de la suppression du plat' 
+    });
+  }
+});
 
 module.exports = router;
