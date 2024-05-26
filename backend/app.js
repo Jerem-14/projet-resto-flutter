@@ -34,6 +34,7 @@ app.use('/api/docs', require('./routes/swagger'));
 // app.use('/api/menu', require('./routes/menu'));
 // app.use('/api/orders', require('./routes/orders'));
 // app.use('/api/restaurants', require('./routes/restaurants'));
+app.use('/api/menu', require('./routes/menu'));
 
 // Gestion des erreurs 404
 app.use('*', (req, res) => {
