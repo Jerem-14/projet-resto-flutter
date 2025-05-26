@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'login_view.dart';
 import 'register_view.dart';
-import 'backlog_view.dart';
+import 'menu_admin_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -238,21 +238,22 @@ class _ProfileViewState extends State<ProfileView> {
                   },
                 ),
                 
-                // Admin-only backlog option
-                if (user.isAdmin)
+                // Admin-only options
+                if (user.isAdmin) ...[
                   _buildProfileOption(
-                    icon: Icons.admin_panel_settings,
-                    title: 'Backlog Admin',
-                    subtitle: 'Gérer les tâches de développement',
+                    icon: Icons.menu_book,
+                    title: 'Gestion du Menu',
+                    subtitle: 'Gérer les catégories et plats du restaurant',
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const BacklogView(),
+                          builder: (context) => const MenuAdminView(),
                         ),
                       );
                     },
                     isAdmin: true,
                   ),
+                ],
                 
                 const SizedBox(height: 32),
                 
@@ -362,4 +363,4 @@ class _ProfileViewState extends State<ProfileView> {
       },
     );
   }
-} 
+}

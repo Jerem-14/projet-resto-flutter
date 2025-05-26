@@ -68,9 +68,9 @@ router.get('/', async (req, res) => {
 router.get('/categories', async (req, res) => {
   try {
     const categories = await MenuCategory.findAll({
-      where: { is_active: true },
+      // where: { is_active: true },
       order: [['name', 'ASC']],
-      attributes: ['id', 'name', 'description', 'created_at', 'updated_at']
+      attributes: ['id', 'name', 'description', 'is_active','created_at', 'updated_at']
     });
 
     res.json(categories);
