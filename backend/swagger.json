@@ -1,0 +1,218 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Authentification Restaurant",
+    "version": "1.0.0",
+    "description": "Documentation de l'API d'authentification du projet restaurant."
+  },
+  "servers": [
+    { "url": "/api" }
+  ],
+  "tags": [
+    {
+      "name": "Authentification",
+      "description": "Gestion de l'inscription, connexion, profil et déconnexion utilisateur."
+    },
+    {
+      "name": "Système",
+      "description": "Endpoints système pour la santé du serveur et la base de données."
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Créer un compte utilisateur",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Utilisateur créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "409": { "description": "Email déjà utilisé" },
+          "400": { "description": "Champs manquants" }
+        },
+        "tags": ["Authentification"]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Connexion utilisateur",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": { "description": "Identifiants invalides" },
+          "400": { "description": "Champs manquants" }
+        },
+        "tags": ["Authentification"]
+      }
+    },
+    "/auth/profile": {
+      "get": {
+        "summary": "Récupérer le profil utilisateur",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Profil utilisateur",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "401": { "description": "Token manquant ou invalide" }
+        },
+        "tags": ["Authentification"]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Déconnexion utilisateur (front)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Déconnexion effectuée côté client",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        },
+        "tags": ["Authentification"]
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Vérifier l'état du serveur",
+        "responses": {
+          "200": {
+            "description": "Serveur opérationnel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "OK" },
+                    "message": { "type": "string", "example": "Backend du restaurant en cours d'exécution" },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Système"]
+      }
+    },
+    "/db/test": {
+      "get": {
+        "summary": "Tester la connexion à la base de données",
+        "responses": {
+          "200": {
+            "description": "Connexion réussie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Connexion à la base de données réussie" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "database": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "dialect": { "type": "string" },
+                        "host": { "type": "string" },
+                        "port": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erreur de connexion à la base de données" }
+        },
+        "tags": ["Système"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "password", "first_name", "last_name"],
+        "properties": {
+          "email": { "type": "string", "example": "test@mail.com" },
+          "password": { "type": "string", "example": "motdepasse" },
+          "first_name": { "type": "string", "example": "John" },
+          "last_name": { "type": "string", "example": "Doe" },
+          "phone": { "type": "string", "example": "0600000000" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "example": "test@mail.com" },
+          "password": { "type": "string", "example": "motdepasse" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "example": "jwt_token_ici" },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "email": { "type": "string", "example": "test@mail.com" },
+          "first_name": { "type": "string", "example": "John" },
+          "last_name": { "type": "string", "example": "Doe" },
+          "phone": { "type": "string", "example": "0600000000" },
+          "role": { "type": "string", "example": "client" }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+} 
