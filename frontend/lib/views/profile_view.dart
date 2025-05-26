@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import 'login_view.dart';
 import 'register_view.dart';
 import 'backlog_view.dart';
+import 'timeslots_management_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -54,11 +55,7 @@ class _ProfileViewState extends State<ProfileView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.person_outline,
-              size: 100,
-              color: Colors.orange,
-            ),
+            const Icon(Icons.person_outline, size: 100, color: Colors.orange),
             const SizedBox(height: 32),
             const Text(
               'Connectez-vous',
@@ -71,23 +68,18 @@ class _ProfileViewState extends State<ProfileView> {
             const SizedBox(height: 16),
             const Text(
               'Accédez à votre profil et gérez vos réservations',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
-            
+
             // Login button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const LoginView(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const LoginView()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -100,15 +92,12 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 child: const Text(
                   'Se connecter',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Register button
             SizedBox(
               width: double.infinity,
@@ -130,10 +119,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 child: const Text(
                   'S\'inscrire',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -145,7 +131,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildAuthenticatedView(AuthService authService) {
     final user = authService.currentUser!;
-    
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -166,7 +152,8 @@ class _ProfileViewState extends State<ProfileView> {
                   radius: 50,
                   backgroundColor: Colors.white,
                   child: Text(
-                    user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase(),
+                    user.firstName[0].toUpperCase() +
+                        user.lastName[0].toUpperCase(),
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -201,7 +188,10 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: user.isAdmin ? Colors.red : Colors.blue,
                     borderRadius: BorderRadius.circular(20),
@@ -218,7 +208,7 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
           ),
-          
+
           // Profile options
           Padding(
             padding: const EdgeInsets.all(16),
@@ -237,7 +227,7 @@ class _ProfileViewState extends State<ProfileView> {
                     );
                   },
                 ),
-                
+
                 // Admin-only backlog option
                 if (user.isAdmin)
                   _buildProfileOption(
@@ -253,9 +243,25 @@ class _ProfileViewState extends State<ProfileView> {
                     },
                     isAdmin: true,
                   ),
-                
+
+                // Admin-only timeslots management
+                if (user.isAdmin)
+                  _buildProfileOption(
+                    icon: Icons.schedule,
+                    title: 'Gestion des Créneaux',
+                    subtitle: 'Gérer les plages horaires de réservation',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const TimeslotsManagementView(),
+                        ),
+                      );
+                    },
+                    isAdmin: true,
+                  ),
+
                 const SizedBox(height: 32),
-                
+
                 // JWT Token info (for demo purposes)
                 Container(
                   width: double.infinity,
@@ -308,18 +314,12 @@ class _ProfileViewState extends State<ProfileView> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isAdmin ? Colors.red.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
-          child: Icon(
-            icon,
-            color: isAdmin ? Colors.red : Colors.orange,
-          ),
+          backgroundColor: isAdmin
+              ? Colors.red.withOpacity(0.1)
+              : Colors.orange.withOpacity(0.1),
+          child: Icon(icon, color: isAdmin ? Colors.red : Colors.orange),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,
@@ -362,4 +362,4 @@ class _ProfileViewState extends State<ProfileView> {
       },
     );
   }
-} 
+}
