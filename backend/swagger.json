@@ -36,6 +36,10 @@
     {
       "name": "Plages horaires",
       "description": "Gestion des créneaux horaires pour les réservations."
+    },
+    {
+      "name": "Disponibilités",
+      "description": "Consultation des disponibilités de réservation pour les prochains jours."
     }
   ],
   "paths": {
@@ -665,6 +669,28 @@
           "404": { "description": "Créneau non trouvé" }
         }
       }
+    },
+    "/availability": {
+      "get": {
+        "summary": "Récupérer les disponibilités pour les 7 prochains jours",
+        "description": "Retourne les créneaux horaires disponibles pour les réservations sur les 7 prochains jours, avec le nombre de places disponibles pour chaque créneau",
+        "responses": {
+          "200": {
+            "description": "Disponibilités récupérées avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/DayAvailability" }
+                }
+              }
+            }
+          },
+          "404": { "description": "Aucun créneau horaire disponible" },
+          "500": { "description": "Configuration du restaurant non trouvée ou erreur serveur" }
+        },
+        "tags": ["Disponibilités"]
+      }
     }
   },
   "components": {
@@ -890,6 +916,53 @@
           "is_active": { "type": "boolean", "example": true },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TimeslotAvailability": {
+        "type": "object",
+        "properties": {
+          "time": { 
+            "type": "string", 
+            "format": "time",
+            "example": "19:00",
+            "description": "Heure du créneau au format HH:MM"
+          },
+          "total_places": { 
+            "type": "integer", 
+            "example": 25,
+            "description": "Nombre total de places disponibles pour ce créneau"
+          },
+          "available_places": { 
+            "type": "integer", 
+            "example": 18,
+            "description": "Nombre de places encore disponibles pour ce créneau"
+          }
+        }
+      },
+      "DayAvailability": {
+        "type": "object",
+        "properties": {
+          "date": { 
+            "type": "string", 
+            "format": "date",
+            "example": "2024-01-15",
+            "description": "Date au format YYYY-MM-DD"
+          },
+          "display_date": { 
+            "type": "string", 
+            "example": "15/01/2024",
+            "description": "Date formatée pour l'affichage (DD/MM/YYYY)"
+          },
+          "day_name": { 
+            "type": "string", 
+            "example": "Lundi",
+            "description": "Nom du jour en français"
+          },
+          "timeslots": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TimeslotAvailability" },
+            "description": "Liste des créneaux horaires avec leurs disponibilités"
+          }
         }
       }
     },

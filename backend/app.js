@@ -35,6 +35,7 @@ app.use('/api/restaurants', require('./routes/restaurants'));
 app.use('/admin', require('./routes/admin'));
 // app.use('/api/orders', require('./routes/orders'));
 app.use('/api/menu', require('./routes/menu'));
+app.use('/api/availability', require('./routes/availability'));
 
 // Gestion des erreurs 404
 app.use('*', (req, res) => {
