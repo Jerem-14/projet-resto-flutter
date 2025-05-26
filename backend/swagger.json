@@ -562,6 +562,27 @@
       }
     },
     "/admin/timeslots": {
+      "get": {
+        "tags": ["Plages horaires"],
+        "summary": "Lister tous les créneaux horaires",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Nécessite le rôle admin.",
+        "responses": {
+          "200": {
+            "description": "Liste des créneaux horaires",
+            "content": {
+              "application/json": {
+                "schema": { 
+                  "type": "array", 
+                  "items": { "$ref": "#/components/schemas/Timeslot" } 
+                }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès réservé aux administrateurs" }
+        }
+      },
       "post": {
         "tags": ["Plages horaires"],
         "summary": "Créer un nouveau créneau horaire",

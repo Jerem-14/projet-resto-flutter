@@ -6,8 +6,6 @@ import '../services/notification_service.dart';
 import '../models/reservation.dart';
 import 'login_view.dart';
 import 'register_view.dart';
-import 'menu_admin_view.dart';
-import 'restaurant_admin_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -33,13 +31,18 @@ class _ProfileViewState extends State<ProfileView> {
 
   void _checkAndLoadReservations() {
     final authService = Provider.of<AuthService>(context, listen: false);
-    if (authService.isAuthenticated && authService.token != null && !_hasLoadedReservations) {
+    if (authService.isAuthenticated &&
+        authService.token != null &&
+        !_hasLoadedReservations) {
       _loadUserReservations();
     }
   }
 
   void _clearNotificationIfNeeded() {
-    final notificationService = Provider.of<NotificationService>(context, listen: false);
+    final notificationService = Provider.of<NotificationService>(
+      context,
+      listen: false,
+    );
     if (notificationService.hasNewReservation) {
       notificationService.clearNewReservation();
     }
@@ -47,7 +50,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _loadUserReservations() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    
+
     if (!authService.isAuthenticated || authService.token == null) {
       return;
     }
@@ -59,7 +62,7 @@ class _ProfileViewState extends State<ProfileView> {
 
     try {
       final result = await ApiService.getUserReservations(authService.token!);
-      
+
       if (result['success']) {
         final List<dynamic> reservationData = result['data'];
         setState(() {
@@ -71,7 +74,8 @@ class _ProfileViewState extends State<ProfileView> {
         });
       } else {
         setState(() {
-          _reservationError = result['message'] ?? 'Erreur lors du chargement des réservations';
+          _reservationError =
+              result['message'] ?? 'Erreur lors du chargement des réservations';
           _isLoadingReservations = false;
           _hasLoadedReservations = true;
         });
@@ -93,7 +97,7 @@ class _ProfileViewState extends State<ProfileView> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _checkAndLoadReservations();
         });
-        
+
         return Scaffold(
           appBar: AppBar(
             title: const Text(
@@ -131,11 +135,7 @@ class _ProfileViewState extends State<ProfileView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.person_outline,
-              size: 100,
-              color: Colors.orange,
-            ),
+            const Icon(Icons.person_outline, size: 100, color: Colors.orange),
             const SizedBox(height: 32),
             const Text(
               'Connectez-vous',
@@ -148,23 +148,18 @@ class _ProfileViewState extends State<ProfileView> {
             const SizedBox(height: 16),
             const Text(
               'Accédez à votre profil et gérez vos réservations',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
-            
+
             // Login button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const LoginView(),
-                    ),
+                    MaterialPageRoute(builder: (context) => const LoginView()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -177,15 +172,12 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 child: const Text(
                   'Se connecter',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Register button
             SizedBox(
               width: double.infinity,
@@ -207,10 +199,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 child: const Text(
                   'S\'inscrire',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -222,7 +211,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildAuthenticatedView(AuthService authService) {
     final user = authService.currentUser!;
-    
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -243,7 +232,8 @@ class _ProfileViewState extends State<ProfileView> {
                   radius: 50,
                   backgroundColor: Colors.white,
                   child: Text(
-                    user.firstName[0].toUpperCase() + user.lastName[0].toUpperCase(),
+                    user.firstName[0].toUpperCase() +
+                        user.lastName[0].toUpperCase(),
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -278,7 +268,10 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: user.isAdmin ? Colors.red : Colors.blue,
                     borderRadius: BorderRadius.circular(20),
@@ -295,10 +288,7 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
           ),
-          
-          // User Reservations Section
-          _buildReservationsSection(),
-          
+
           // Profile options
           Padding(
             padding: const EdgeInsets.all(16),
@@ -321,22 +311,9 @@ class _ProfileViewState extends State<ProfileView> {
                     );
                   },
                 ),
-                
-                // Admin-only options
-                if (user.isAdmin) ...[
-                  _buildProfileOption(
-                    icon: Icons.menu_book,
-                    title: 'Gestion du Menu',
-                    subtitle: 'Gérer les catégories et plats du restaurant',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const MenuAdminView(),
-                        ),
-                      );
-                    },
-                    isAdmin: true,
-                  ),
+
+                // Admin-only backlog option
+                if (user.isAdmin)
                   _buildProfileOption(
                     icon: Icons.restaurant,
                     title: 'Gestion Restaurant',
@@ -350,10 +327,9 @@ class _ProfileViewState extends State<ProfileView> {
                     },
                     isAdmin: true,
                   ),
-                ],
-                
+
                 const SizedBox(height: 32),
-                
+
                 // JWT Token info (for demo purposes)
                 Container(
                   width: double.infinity,
@@ -426,7 +402,7 @@ class _ProfileViewState extends State<ProfileView> {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           if (_isLoadingReservations)
             const Center(
               child: Padding(
@@ -493,7 +469,7 @@ class _ProfileViewState extends State<ProfileView> {
                 return _buildReservationCard(reservation);
               }).toList(),
             ),
-          
+
           const SizedBox(height: 16),
         ],
       ),
@@ -501,8 +477,10 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   Widget _buildReservationCard(Reservation reservation) {
-    final isUpcoming = DateTime.parse(reservation.reservationDate).isAfter(DateTime.now());
-    
+    final isUpcoming = DateTime.parse(
+      reservation.reservationDate,
+    ).isAfter(DateTime.now());
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
@@ -515,7 +493,10 @@ class _ProfileViewState extends State<ProfileView> {
               children: [
                 if (isUpcoming)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green,
                       borderRadius: BorderRadius.circular(12),
@@ -541,10 +522,14 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 16, color: Colors.orange),
+                const Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: Colors.orange,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   reservation.formattedDate,
@@ -556,7 +541,7 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             Row(
               children: [
                 const Icon(Icons.access_time, size: 16, color: Colors.orange),
@@ -571,7 +556,7 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             Row(
               children: [
                 const Icon(Icons.people, size: 16, color: Colors.orange),
@@ -602,18 +587,12 @@ class _ProfileViewState extends State<ProfileView> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isAdmin ? Colors.red.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
-          child: Icon(
-            icon,
-            color: isAdmin ? Colors.red : Colors.orange,
-          ),
+          backgroundColor: isAdmin
+              ? Colors.red.withOpacity(0.1)
+              : Colors.orange.withOpacity(0.1),
+          child: Icon(icon, color: isAdmin ? Colors.red : Colors.orange),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,

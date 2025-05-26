@@ -1,6 +1,16 @@
 const { Timeslot } = require('../models');
 
 const timeslotController = {
+  // Récupérer tous les créneaux
+  async getAll(req, res) {
+    try {
+      const timeslots = await Timeslot.findAll();
+      res.json(timeslots);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
   // Créer un nouveau créneau
   async create(req, res) {
     try {

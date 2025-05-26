@@ -32,7 +32,7 @@ app.use('/api/db', require('./routes/db'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/docs', require('./routes/swagger'));
 app.use('/api/restaurants', require('./routes/restaurants'));
-app.use('/admin', require('./routes/admin'));
+app.use('/api/admin', require('./routes/admin'));
 // app.use('/api/orders', require('./routes/orders'));
 app.use('/api/menu', require('./routes/menu'));
 app.use('/api/availability', require('./routes/availability'));
