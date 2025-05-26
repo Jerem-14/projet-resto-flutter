@@ -7,6 +7,7 @@ import '../models/reservation.dart';
 import 'login_view.dart';
 import 'register_view.dart';
 import 'menu_admin_view.dart';
+import 'restaurant_admin_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -331,6 +332,19 @@ class _ProfileViewState extends State<ProfileView> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const MenuAdminView(),
+                        ),
+                      );
+                    },
+                    isAdmin: true,
+                  ),
+                  _buildProfileOption(
+                    icon: Icons.restaurant,
+                    title: 'Gestion Restaurant',
+                    subtitle: 'Modifier les informations du restaurant',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const RestaurantAdminView(),
                         ),
                       );
                     },
