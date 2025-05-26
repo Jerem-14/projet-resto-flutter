@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 import 'views/home_view.dart';
 import 'views/reservation_view.dart';
 import 'views/profile_view.dart';
@@ -14,8 +15,11 @@ class RestaurantApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AuthService(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => AuthService()),
+        ChangeNotifierProvider(create: (context) => NotificationService()),
+      ],
       child: MaterialApp(
         title: 'Restaurant App',
         theme: ThemeData(
@@ -50,33 +54,62 @@ class _MainNavigationViewState extends State<MainNavigationView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _views[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'HOME',
+    return Consumer<NotificationService>(
+      builder: (context, notificationService, child) {
+        return Scaffold(
+          body: _views[_currentIndex],
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              
+              // Clear notification when user taps on profile
+              if (index == 2 && notificationService.hasNewReservation) {
+                notificationService.clearNewReservation();
+              }
+            },
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: Colors.orange,
+            unselectedItemColor: Colors.grey,
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'HOME',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant_menu),
+                label: 'RESERVATION',
+              ),
+              BottomNavigationBarItem(
+                icon: Stack(
+                  children: [
+                    const Icon(Icons.person),
+                    if (notificationService.hasNewReservation)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                label: 'PROFILE',
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: 'RESERVATION',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'PROFILE',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

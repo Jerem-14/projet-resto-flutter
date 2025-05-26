@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../services/api_service.dart';
+import '../services/notification_service.dart';
 import 'login_view.dart';
 
 class ReservationView extends StatefulWidget {
@@ -14,6 +16,7 @@ class ReservationView extends StatefulWidget {
 class _ReservationViewState extends State<ReservationView> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _reservationData = [];
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -21,68 +24,37 @@ class _ReservationViewState extends State<ReservationView> {
     _loadReservationData();
   }
 
-  // Simulate API call to fetch reservation data for next 7 days
+  // Fetch availability data from API
   Future<void> _loadReservationData() async {
     setState(() {
       _isLoading = true;
+      _errorMessage = null;
     });
 
-    // Simulate API delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Generate dummy data for next 7 days
-    final now = DateTime.now();
-    final List<Map<String, dynamic>> dummyData = [];
-
-    for (int i = 0; i < 7; i++) {
-      final date = now.add(Duration(days: i));
-      dummyData.add({
-        'date': date.toIso8601String().split('T')[0],
-        'display_date': _formatDate(date),
-        'day_name': _getDayName(date.weekday),
-        'timeslots': [
-          {
-            'time': '12:00',
-            'total_places': 20,
-            'available_places': i == 0 ? 5 : (i == 1 ? 0 : 15 - (i * 2)),
-          },
-          {
-            'time': '13:30',
-            'total_places': 20,
-            'available_places': i == 0 ? 8 : (i == 2 ? 1 : 12 - (i * 1)),
-          },
-          {
-            'time': '19:00',
-            'total_places': 25,
-            'available_places': i == 0 ? 12 : (i == 3 ? 0 : 18 - (i * 2)),
-          },
-          {
-            'time': '20:30',
-            'total_places': 25,
-            'available_places': i == 0 ? 15 : (i == 1 ? 3 : 20 - (i * 2)),
-          },
-        ],
+    try {
+      final result = await ApiService.getAvailability();
+      
+      if (result['success']) {
+        final List<dynamic> availabilityData = result['data'];
+        setState(() {
+          _reservationData = availabilityData.cast<Map<String, dynamic>>();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = result['message'] ?? 'Erreur lors du chargement des disponibilités';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erreur de connexion: $e';
+        _isLoading = false;
       });
     }
-
-    setState(() {
-      _reservationData = dummyData;
-      _isLoading = false;
-    });
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun',
-      'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'
-    ];
-    return '${date.day} ${months[date.month - 1]}';
-  }
 
-  String _getDayName(int weekday) {
-    final days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    return days[weekday - 1];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,65 +82,158 @@ class _ReservationViewState extends State<ReservationView> {
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
               ),
             )
-          : RefreshIndicator(
-              onRefresh: _loadReservationData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  children: [
-                    // Header
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.orange, Colors.orangeAccent],
+          : _errorMessage != null
+              ? _buildErrorWidget()
+              : RefreshIndicator(
+                  onRefresh: _loadReservationData,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        // Header
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.orange, Colors.orangeAccent],
+                            ),
+                          ),
+                          child: const Column(
+                            children: [
+                              Icon(
+                                Icons.restaurant_menu,
+                                size: 50,
+                                color: Colors.white,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'Réserver votre table',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Choisissez votre créneau disponible',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white70,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      child: const Column(
-                        children: [
-                          Icon(
-                            Icons.restaurant_menu,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                          SizedBox(height: 12),
-                          Text(
-                            'Réserver votre table',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Choisissez votre créneau pour les 7 prochains jours',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
 
-                    // Reservation slots
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: _reservationData.map((dayData) {
-                          return _buildDayCard(dayData);
-                        }).toList(),
-                      ),
+                        // Reservation slots
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: _reservationData.isEmpty
+                              ? _buildEmptyStateWidget()
+                              : Column(
+                                  children: _reservationData.map((dayData) {
+                                    return _buildDayCard(dayData);
+                                  }).toList(),
+                                ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Erreur de chargement',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
               ),
             ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadReservationData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          children: [
+            Icon(
+              Icons.event_busy,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Aucun créneau disponible',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Aucune disponibilité trouvée pour le moment.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadReservationData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Actualiser'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -222,6 +287,7 @@ class _ReservationViewState extends State<ReservationView> {
               children: (dayData['timeslots'] as List).map((slot) {
                 return _buildTimeSlot(
                   dayData['date'],
+                  slot['id'],
                   slot['time'],
                   slot['total_places'],
                   slot['available_places'],
@@ -234,14 +300,14 @@ class _ReservationViewState extends State<ReservationView> {
     );
   }
 
-  Widget _buildTimeSlot(String date, String time, int totalPlaces, int availablePlaces) {
+  Widget _buildTimeSlot(String date, int timeslotId, String time, int totalPlaces, int availablePlaces) {
     final bool isAvailable = availablePlaces > 0;
     
     return Container(
       width: (MediaQuery.of(context).size.width - 64) / 2 - 4,
       child: ElevatedButton(
         onPressed: isAvailable
-            ? () => _handleReservationTap(date, time, availablePlaces)
+            ? () => _handleReservationTap(date, timeslotId, time, availablePlaces)
             : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: isAvailable ? Colors.orange : Colors.grey[300],
@@ -266,7 +332,7 @@ class _ReservationViewState extends State<ReservationView> {
             const SizedBox(height: 4),
             Text(
               isAvailable 
-                  ? '$availablePlaces/$totalPlaces places'
+                  ? '$availablePlaces places'
                   : 'Complet',
               style: TextStyle(
                 fontSize: 12,
@@ -279,7 +345,7 @@ class _ReservationViewState extends State<ReservationView> {
     );
   }
 
-  void _handleReservationTap(String date, String time, int availablePlaces) {
+  void _handleReservationTap(String date, int timeslotId, String time, int availablePlaces) {
     final authService = Provider.of<AuthService>(context, listen: false);
     
     if (!authService.isAuthenticated) {
@@ -293,10 +359,10 @@ class _ReservationViewState extends State<ReservationView> {
     }
 
     // Show reservation modal
-    _showReservationModal(date, time, availablePlaces);
+    _showReservationModal(date, timeslotId, time, availablePlaces);
   }
 
-  void _showReservationModal(String date, String time, int availablePlaces) {
+  void _showReservationModal(String date, int timeslotId, String time, int availablePlaces) {
     final TextEditingController personsController = TextEditingController();
     bool isValidPersonCount = true;
     
@@ -416,6 +482,7 @@ class _ReservationViewState extends State<ReservationView> {
                       ? () {
                           _confirmReservation(
                             date,
+                            timeslotId,
                             time,
                             int.parse(personsController.text),
                           );
@@ -436,21 +503,84 @@ class _ReservationViewState extends State<ReservationView> {
     );
   }
 
-  void _confirmReservation(String date, String time, int persons) {
-    // TODO: This will later make an API call to create the reservation
-    // For now, just show a success message
+  Future<void> _confirmReservation(String date, int timeslotId, String time, int persons) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final notificationService = Provider.of<NotificationService>(context, listen: false);
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Réservation confirmée pour $persons personne${persons > 1 ? 's' : ''} le $date à $time',
+    if (!authService.isAuthenticated || authService.token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erreur: Vous devez être connecté pour réserver'),
+          backgroundColor: Colors.red,
         ),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 3),
-      ),
+      );
+      return;
+    }
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text('Création de la réservation...'),
+            ],
+          ),
+        );
+      },
     );
 
-    // Refresh the data to update available places
-    _loadReservationData();
+    try {
+      final result = await ApiService.createReservation(
+        timeslotId: timeslotId,
+        reservationDate: date,
+        numberOfGuests: persons,
+        token: authService.token!,
+      );
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      if (result['success']) {
+        // Trigger notification badge
+        notificationService.setNewReservation();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Réservation confirmée pour $persons personne${persons > 1 ? 's' : ''} le $date à $time',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Refresh the data to update available places
+        _loadReservationData();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Erreur lors de la création de la réservation'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur de connexion: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 } 
