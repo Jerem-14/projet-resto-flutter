@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'services/auth_service.dart';
 import 'views/home_view.dart';
 import 'views/reservation_view.dart';
 import 'views/profile_view.dart';
@@ -12,17 +14,20 @@ class RestaurantApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Restaurant App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.orange,
-          brightness: Brightness.light,
+    return ChangeNotifierProvider(
+      create: (context) => AuthService(),
+      child: MaterialApp(
+        title: 'Restaurant App',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.orange,
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
+        home: const MainNavigationView(),
+        debugShowCheckedModeBanner: false,
       ),
-      home: const MainNavigationView(),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
