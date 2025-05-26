@@ -1,34 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
+import 'api_service.dart';
 
 class AuthService extends ChangeNotifier {
   User? _currentUser;
   String? _jwtToken;
   bool _isLoading = false;
 
-  // Dummy users data
-  final List<Map<String, dynamic>> _dummyUsers = [
-    {
-      'id': 1,
-      'email': 'user@example.com',
-      'password': 'password123',
-      'first_name': 'Jean',
-      'last_name': 'Dupont',
-      'role': 'user',
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-    {
-      'id': 2,
-      'email': 'admin@example.com',
-      'password': 'admin123',
-      'first_name': 'Marie',
-      'last_name': 'Martin',
-      'role': 'admin',
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-  ];
+
 
   // Getters
   User? get currentUser => _currentUser;
@@ -43,43 +22,52 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Find user in dummy data
-      final userData = _dummyUsers.firstWhere(
-        (user) => user['email'] == email && user['password'] == password,
-        orElse: () => {},
+      final result = await ApiService.login(
+        email: email,
+        password: password,
       );
 
-      if (userData.isEmpty) {
+      if (result['success']) {
+        final data = result['data'];
+        _jwtToken = data['token'];
+        
+        // Adapter les données de l'API au format attendu par le modèle User
+        final userData = {
+          'id': data['user']['id'],
+          'email': data['user']['email'],
+          'first_name': data['user']['first_name'],
+          'last_name': data['user']['last_name'],
+          'phone': data['user']['phone'],
+          'role': data['user']['role'],
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+        
+        _currentUser = User.fromJson(userData);
+
+        _isLoading = false;
+        notifyListeners();
+
+        return {
+          'success': true,
+          'message': 'Connexion réussie',
+          'user': _currentUser,
+          'token': _jwtToken,
+        };
+      } else {
         _isLoading = false;
         notifyListeners();
         return {
           'success': false,
-          'message': 'Email ou mot de passe incorrect',
+          'message': result['message'],
         };
       }
-
-      // Create user and generate dummy JWT
-      _currentUser = User.fromJson(userData);
-      _jwtToken = _generateDummyJWT(userData['id'] as int, userData['role'] as String);
-
-      _isLoading = false;
-      notifyListeners();
-
-      return {
-        'success': true,
-        'message': 'Connexion réussie',
-        'user': _currentUser,
-        'token': _jwtToken,
-      };
     } catch (e) {
       _isLoading = false;
       notifyListeners();
       return {
         'success': false,
-        'message': 'Erreur de connexion',
+        'message': 'Erreur de connexion au serveur',
       };
     }
   }
@@ -90,59 +78,61 @@ class AuthService extends ChangeNotifier {
     String password,
     String firstName,
     String lastName,
+    String phone,
   ) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 1));
+      final result = await ApiService.register(
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+      );
 
-      // Check if email already exists
-      final existingUser = _dummyUsers.any((user) => user['email'] == email);
-      if (existingUser) {
+      if (result['success']) {
+        final data = result['data'];
+        _jwtToken = data['token'];
+        
+        // Adapter les données de l'API au format attendu par le modèle User
+        final userData = {
+          'id': data['user']['id'],
+          'email': data['user']['email'],
+          'first_name': data['user']['first_name'],
+          'last_name': data['user']['last_name'],
+          'phone': data['user']['phone'],
+          'role': data['user']['role'],
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+        
+        _currentUser = User.fromJson(userData);
+
+        _isLoading = false;
+        notifyListeners();
+
+        return {
+          'success': true,
+          'message': 'Inscription réussie',
+          'user': _currentUser,
+          'token': _jwtToken,
+        };
+      } else {
         _isLoading = false;
         notifyListeners();
         return {
           'success': false,
-          'message': 'Cet email est déjà utilisé',
+          'message': result['message'],
         };
       }
-
-      // Create new user data
-      final newUserData = {
-        'id': _dummyUsers.length + 1,
-        'email': email,
-        'password': password,
-        'first_name': firstName,
-        'last_name': lastName,
-        'role': 'user', // Default role
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-
-      // Add to dummy users (in real app, this would be sent to API)
-      _dummyUsers.add(newUserData);
-
-      // Create user and generate dummy JWT
-      _currentUser = User.fromJson(newUserData);
-      _jwtToken = _generateDummyJWT(newUserData['id'] as int, newUserData['role'] as String);
-
-      _isLoading = false;
-      notifyListeners();
-
-      return {
-        'success': true,
-        'message': 'Inscription réussie',
-        'user': _currentUser,
-        'token': _jwtToken,
-      };
     } catch (e) {
       _isLoading = false;
       notifyListeners();
       return {
         'success': false,
-        'message': 'Erreur lors de l\'inscription',
+        'message': 'Erreur de connexion au serveur',
       };
     }
   }
@@ -154,17 +144,20 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Generate dummy JWT token
-  String _generateDummyJWT(int userId, String role) {
-    // In a real app, this would be returned by the API
-    final header = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
-    final payload = 'eyJzdWIiOiIkdXNlcklkIiwicm9sZSI6IiRyb2xlIiwiaWF0IjoxNjE2MjM5MDIyfQ';
-    final signature = 'dummy_signature_${userId}_$role';
-    return '$header.$payload.$signature';
-  }
-
-  // Check if token is valid (dummy implementation)
+  // Check if token is valid
   bool isTokenValid() {
     return _jwtToken != null && _jwtToken!.isNotEmpty;
+  }
+
+  // Verify token with API
+  Future<bool> verifyTokenWithAPI() async {
+    if (_jwtToken == null) return false;
+    
+    try {
+      final result = await ApiService.verifyToken(_jwtToken!);
+      return result['success'];
+    } catch (e) {
+      return false;
+    }
   }
 } 

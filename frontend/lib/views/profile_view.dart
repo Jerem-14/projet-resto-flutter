@@ -191,6 +191,14 @@ class _ProfileViewState extends State<ProfileView> {
                     color: Colors.white.withOpacity(0.9),
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  user.phone,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -199,7 +207,7 @@ class _ProfileViewState extends State<ProfileView> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    user.isAdmin ? 'Administrateur' : 'Utilisateur',
+                    user.isAdmin ? 'Administrateur' : 'Client',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
