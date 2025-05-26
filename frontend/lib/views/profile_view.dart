@@ -303,24 +303,6 @@ class _ProfileViewState extends State<ProfileView> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildProfileOption(
-                  icon: Icons.restaurant_menu,
-                  title: 'Actualiser les réservations',
-                  subtitle: 'Recharger la liste de vos réservations',
-                  onTap: () {
-                    setState(() {
-                      _hasLoadedReservations = false;
-                    });
-                    _loadUserReservations();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Réservations actualisées'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-                ),
-                
                 // Admin-only options
                 if (user.isAdmin) ...[
                   _buildProfileOption(
@@ -339,40 +321,6 @@ class _ProfileViewState extends State<ProfileView> {
                 ],
                 
                 const SizedBox(height: 32),
-                
-                // JWT Token info (for demo purposes)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Token JWT (Demo)',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        authService.jwtToken ?? 'Aucun token',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          fontFamily: 'monospace',
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
