@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "API Authentification Restaurant",
+    "title": "API Restaurant",
     "version": "1.0.0",
-    "description": "Documentation de l'API d'authentification du projet restaurant."
+    "description": "Documentation complète de l'API du projet restaurant - Authentification et Gestion du Menu."
   },
   "servers": [
     { "url": "/api" }
@@ -12,6 +12,18 @@
     {
       "name": "Authentification",
       "description": "Gestion de l'inscription, connexion, profil et déconnexion utilisateur."
+    },
+    {
+      "name": "Menu Public",
+      "description": "Consultation publique du menu et des catégories."
+    },
+    {
+      "name": "Menu Admin - Catégories",
+      "description": "Gestion des catégories de menu (admin uniquement)."
+    },
+    {
+      "name": "Menu Admin - Plats",
+      "description": "Gestion des plats du menu (admin uniquement)."
     },
     {
       "name": "Système",
@@ -102,12 +114,271 @@
             "description": "Déconnexion effectuée côté client",
             "content": {
               "application/json": {
-                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+                "schema": { 
+                  "type": "object", 
+                  "properties": { 
+                    "message": { "type": "string" } 
+                  } 
+                }
               }
             }
           }
         },
         "tags": ["Authentification"]
+      }
+    },
+    "/menu": {
+      "get": {
+        "summary": "Récupérer le menu complet avec catégories et plats",
+        "description": "Retourne tous les plats disponibles organisés par catégories actives",
+        "responses": {
+          "200": {
+            "description": "Menu complet récupéré avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/MenuItemFormatted" }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erreur serveur lors de la récupération du menu" }
+        },
+        "tags": ["Menu Public"]
+      }
+    },
+    "/menu/categories": {
+      "get": {
+        "summary": "Récupérer toutes les catégories actives",
+        "description": "Retourne la liste des catégories de menu disponibles",
+        "responses": {
+          "200": {
+            "description": "Catégories récupérées avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/MenuCategory" }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erreur serveur lors de la récupération des catégories" }
+        },
+        "tags": ["Menu Public"]
+      }
+    },
+    "/menu/admin/categories": {
+      "post": {
+        "summary": "Créer une nouvelle catégorie",
+        "description": "Permet à un administrateur de créer une nouvelle catégorie de menu",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCategoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Catégorie créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CategoryResponse" }
+              }
+            }
+          },
+          "400": { "description": "Données invalides (nom manquant ou trop long)" },
+          "401": { "description": "Token manquant ou invalide" },
+          "403": { "description": "Accès refusé. Droits administrateur requis." },
+          "409": { "description": "Une catégorie avec ce nom existe déjà" },
+          "500": { "description": "Erreur serveur lors de la création de la catégorie" }
+        },
+        "tags": ["Menu Admin - Catégories"]
+      }
+    },
+    "/menu/admin/categories/{id}": {
+      "patch": {
+        "summary": "Modifier une catégorie existante",
+        "description": "Permet à un administrateur de modifier une catégorie de menu",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID de la catégorie à modifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateCategoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Catégorie mise à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CategoryResponse" }
+              }
+            }
+          },
+          "400": { "description": "Données invalides" },
+          "401": { "description": "Token manquant ou invalide" },
+          "403": { "description": "Accès refusé. Droits administrateur requis." },
+          "404": { "description": "Catégorie non trouvée" },
+          "409": { "description": "Une autre catégorie avec ce nom existe déjà" },
+          "500": { "description": "Erreur serveur lors de la mise à jour de la catégorie" }
+        },
+        "tags": ["Menu Admin - Catégories"]
+      },
+      "delete": {
+        "summary": "Supprimer une catégorie",
+        "description": "Permet à un administrateur de supprimer une catégorie (si elle ne contient pas de plats)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID de la catégorie à supprimer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catégorie supprimée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Catégorie supprimée avec succès" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token manquant ou invalide" },
+          "403": { "description": "Accès refusé. Droits administrateur requis." },
+          "404": { "description": "Catégorie non trouvée" },
+          "409": { "description": "Impossible de supprimer cette catégorie car elle contient des plats" },
+          "500": { "description": "Erreur serveur lors de la suppression de la catégorie" }
+        },
+        "tags": ["Menu Admin - Catégories"]
+      }
+    },
+    "/menu/admin/items": {
+      "post": {
+        "summary": "Ajouter un nouveau plat",
+        "description": "Permet à un administrateur d'ajouter un nouveau plat au menu",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateMenuItemRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Plat créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MenuItemResponse" }
+              }
+            }
+          },
+          "400": { "description": "Données invalides ou catégorie inactive" },
+          "401": { "description": "Token manquant ou invalide" },
+          "403": { "description": "Accès refusé. Droits administrateur requis." },
+          "404": { "description": "Catégorie non trouvée" },
+          "500": { "description": "Erreur serveur lors de la création du plat" }
+        },
+        "tags": ["Menu Admin - Plats"]
+      }
+    },
+    "/menu/admin/items/{id}": {
+      "patch": {
+        "summary": "Modifier un plat existant",
+        "description": "Permet à un administrateur de modifier un plat du menu",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID du plat à modifier"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateMenuItemRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plat mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MenuItemResponse" }
+              }
+            }
+          },
+          "400": { "description": "Données invalides ou catégorie inactive" },
+          "401": { "description": "Token manquant ou invalide" },
+          "403": { "description": "Accès refusé. Droits administrateur requis." },
+          "404": { "description": "Plat ou catégorie non trouvé(e)" },
+          "500": { "description": "Erreur serveur lors de la mise à jour du plat" }
+        },
+        "tags": ["Menu Admin - Plats"]
+      },
+      "delete": {
+        "summary": "Supprimer un plat",
+        "description": "Permet à un administrateur de supprimer un plat du menu",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID du plat à supprimer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plat supprimé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Plat supprimé avec succès" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Token manquant ou invalide" },
+          "403": { "description": "Accès refusé. Droits administrateur requis." },
+          "404": { "description": "Plat non trouvé" },
+          "500": { "description": "Erreur serveur lors de la suppression du plat" }
+        },
+        "tags": ["Menu Admin - Plats"]
       }
     },
     "/health": {
@@ -205,6 +476,148 @@
           "phone": { "type": "string", "example": "0600000000" },
           "role": { "type": "string", "example": "client" }
         }
+      },
+      "MenuCategory": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Entrées" },
+          "description": { "type": "string", "example": "Nos délicieuses entrées" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MenuItemFormatted": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "category": { "type": "string", "example": "Entrées" },
+          "name": { "type": "string", "example": "Salade César" },
+          "description": { "type": "string", "example": "Salade verte, croûtons, parmesan, sauce César" },
+          "price": { "type": "number", "format": "float", "example": 12.50 },
+          "is_available": { "type": "boolean", "example": true },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MenuItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "category_id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Salade César" },
+          "description": { "type": "string", "example": "Salade verte, croûtons, parmesan, sauce César" },
+          "price": { "type": "number", "format": "float", "example": 12.50 },
+          "is_available": { "type": "boolean", "example": true },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "category": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer", "example": 1 },
+              "name": { "type": "string", "example": "Entrées" }
+            }
+          }
+        }
+      },
+      "CreateCategoryRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { 
+            "type": "string", 
+            "maxLength": 100,
+            "example": "Entrées" 
+          },
+          "description": { 
+            "type": "string", 
+            "example": "Nos délicieuses entrées pour commencer votre repas" 
+          }
+        }
+      },
+      "UpdateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": { 
+            "type": "string", 
+            "maxLength": 100,
+            "example": "Entrées" 
+          },
+          "description": { 
+            "type": "string", 
+            "example": "Nos délicieuses entrées pour commencer votre repas" 
+          },
+          "is_active": { 
+            "type": "boolean", 
+            "example": true 
+          }
+        }
+      },
+      "CategoryResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Catégorie créée avec succès" },
+          "category": { "$ref": "#/components/schemas/MenuCategory" }
+        }
+      },
+      "CreateMenuItemRequest": {
+        "type": "object",
+        "required": ["category_id", "name", "price"],
+        "properties": {
+          "category_id": { "type": "integer", "example": 1 },
+          "name": { 
+            "type": "string", 
+            "maxLength": 150,
+            "example": "Salade César" 
+          },
+          "description": { 
+            "type": "string", 
+            "example": "Salade verte, croûtons, parmesan, sauce César maison" 
+          },
+          "price": { 
+            "type": "number", 
+            "format": "float", 
+            "minimum": 0,
+            "example": 12.50 
+          },
+          "is_available": { 
+            "type": "boolean", 
+            "example": true,
+            "default": true
+          }
+        }
+      },
+      "UpdateMenuItemRequest": {
+        "type": "object",
+        "properties": {
+          "category_id": { "type": "integer", "example": 1 },
+          "name": { 
+            "type": "string", 
+            "maxLength": 150,
+            "example": "Salade César" 
+          },
+          "description": { 
+            "type": "string", 
+            "example": "Salade verte, croûtons, parmesan, sauce César maison" 
+          },
+          "price": { 
+            "type": "number", 
+            "format": "float", 
+            "minimum": 0,
+            "example": 12.50 
+          },
+          "is_available": { 
+            "type": "boolean", 
+            "example": true 
+          }
+        }
+      },
+      "MenuItemResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Plat créé avec succès" },
+          "item": { "$ref": "#/components/schemas/MenuItem" }
+        }
       }
     },
     "securitySchemes": {
@@ -215,4 +628,4 @@
       }
     }
   }
-} 
+}
