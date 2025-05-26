@@ -7,6 +7,8 @@ import '../models/reservation.dart';
 import 'login_view.dart';
 import 'restaurant_admin_view.dart';
 import 'register_view.dart';
+import 'menu_admin_view.dart';
+import 'timeslots_management_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -300,6 +302,32 @@ class _ProfileViewState extends State<ProfileView> {
               children: [
                 // Admin-only options
                 if (user.isAdmin) ...[
+                  _buildProfileOption(
+                    icon: Icons.menu_book,
+                    title: 'Gestion du Menu',
+                    subtitle: 'Gérer les catégories et plats du restaurant',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const MenuAdminView(),
+                        ),
+                      );
+                    },
+                    isAdmin: true,
+                  ),
+                  _buildProfileOption(
+                    icon: Icons.schedule,
+                    title: 'Gestion Créneaux',
+                    subtitle: 'Gérer les horaires et créneaux de réservation',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const TimeslotsManagementView(),
+                        ),
+                      );
+                    },
+                    isAdmin: true,
+                  ),
                   _buildProfileOption(
                     icon: Icons.restaurant,
                     title: 'Gestion Restaurant',
