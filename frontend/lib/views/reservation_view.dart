@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../services/notification_service.dart';
 import 'login_view.dart';
 
 class ReservationView extends StatefulWidget {
@@ -504,6 +505,7 @@ class _ReservationViewState extends State<ReservationView> {
 
   Future<void> _confirmReservation(String date, int timeslotId, String time, int persons) async {
     final authService = Provider.of<AuthService>(context, listen: false);
+    final notificationService = Provider.of<NotificationService>(context, listen: false);
     
     if (!authService.isAuthenticated || authService.token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -544,6 +546,9 @@ class _ReservationViewState extends State<ReservationView> {
       Navigator.of(context).pop();
 
       if (result['success']) {
+        // Trigger notification badge
+        notificationService.setNewReservation();
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

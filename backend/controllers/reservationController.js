@@ -1,5 +1,6 @@
 const db = require('../models');
 const { Op } = require('sequelize');
+const { sendReservationConfirmationEmail } = require('../services/emailService');
 const Reservation = db.Reservation;
 const Timeslot = db.Timeslot;
 const RestaurantConfig = db.RestaurantConfig;
@@ -101,6 +102,24 @@ exports.createReservation = async (req, res) => {
         }
       ]
     });
+
+    // Send confirmation email (don't block reservation if email fails)
+    try {
+      await sendReservationConfirmationEmail(
+        completeReservation.user.email,
+        completeReservation.user.first_name,
+        completeReservation.user.last_name,
+        {
+          reservationDate: completeReservation.reservation_date,
+          startTime: completeReservation.timeslot.start_time,
+          numberOfGuests: completeReservation.number_of_guests,
+          reservationId: completeReservation.id
+        }
+      );
+    } catch (emailError) {
+      console.error('Failed to send reservation confirmation email:', emailError);
+      // Continue with reservation response even if email fails
+    }
 
     return res.status(201).json({
       message: 'Réservation créée avec succès',
