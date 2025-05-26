@@ -1,6 +1,7 @@
 const db = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sendWelcomeEmail } = require('../services/emailService');
 const User = db.User;
 
 const generateToken = (user) => {
@@ -23,6 +24,15 @@ exports.register = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({ email, password: hashedPassword, first_name, last_name, phone });
+    
+    // Send welcome email (don't block registration if email fails)
+    try {
+      await sendWelcomeEmail(user.email, user.first_name, user.last_name);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Continue with registration even if email fails
+    }
+    
     const token = generateToken(user);
     return res.status(201).json({
       token,
