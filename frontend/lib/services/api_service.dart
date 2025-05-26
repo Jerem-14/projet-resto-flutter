@@ -173,37 +173,106 @@ class ApiService {
   // Get all timeslots
   static Future<Map<String, dynamic>> getTimeslots(String token) async {
     try {
-      developer.log('⏰ Récupération des créneaux horaires');
-      developer.log('📡 URL: $baseUrl/admin/timeslots');
+      developer.log('⏰ [ApiService] Début récupération des créneaux horaires');
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/timeslots'),
-        headers: _headers,
+      // Construction de l'URL
+      final baseUrlWithoutApi = baseUrl.replaceAll('/api', '');
+      final fullUrl = '$baseUrl/admin/timeslots';
+      developer.log('📡 [ApiService] URL construite: $fullUrl');
+      developer.log('📡 [ApiService] Base URL original: $baseUrl');
+      developer.log('📡 [ApiService] Base URL sans /api: $baseUrlWithoutApi');
+
+      // Préparation des headers
+      final headers = _headersWithAuth(token);
+      developer.log('🔐 [ApiService] Headers préparés: $headers');
+      developer.log(
+        '🔐 [ApiService] Token utilisé: ${token.substring(0, 20)}...',
       );
 
-      developer.log('📥 Status Code: ${response.statusCode}');
-      developer.log('📥 Response Body: ${response.body}');
+      developer.log('📤 [ApiService] Envoi de la requête GET...');
+      final response = await http.get(
+        Uri.parse('$baseUrl/admin/timeslots'),
+        headers: _headersWithAuth(token),
+      );
+
+      developer.log('📥 [ApiService] Réponse reçue');
+      developer.log('📥 [ApiService] Status Code: ${response.statusCode}');
+      developer.log('📥 [ApiService] Headers de réponse: ${response.headers}');
+      developer.log('📥 [ApiService] Body brut: ${response.body}');
+      developer.log(
+        '📥 [ApiService] Content-Type: ${response.headers['content-type']}',
+      );
+
+      // Vérification du content-type
+      final contentType = response.headers['content-type'];
+      if (contentType != null && !contentType.contains('application/json')) {
+        developer.log('⚠️ [ApiService] Content-Type inattendu: $contentType');
+      }
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
         developer.log(
-          '✅ Créneaux récupérés avec succès (${data.length} éléments)',
+          '✅ [ApiService] Status 200 - Tentative de parsing JSON...',
         );
-        return {'success': true, 'data': data};
+
+        try {
+          final dynamic parsedData = jsonDecode(response.body);
+          developer.log('✅ [ApiService] JSON parsé avec succès');
+          developer.log(
+            '📊 [ApiService] Type de données: ${parsedData.runtimeType}',
+          );
+          developer.log('📊 [ApiService] Contenu: $parsedData');
+
+          // Vérification si c'est une liste
+          if (parsedData is List) {
+            developer.log(
+              '📋 [ApiService] Données sous forme de liste (${parsedData.length} éléments)',
+            );
+            for (int i = 0; i < parsedData.length && i < 3; i++) {
+              developer.log('📄 [ApiService] Élément $i: ${parsedData[i]}');
+            }
+          } else {
+            developer.log(
+              '📄 [ApiService] Données sous forme d\'objet: $parsedData',
+            );
+          }
+
+          return {'success': true, 'data': parsedData};
+        } catch (jsonError, stackTrace) {
+          developer.log('💥 [ApiService] Erreur parsing JSON: $jsonError');
+          developer.log('📚 [ApiService] Stack trace JSON: $stackTrace');
+          developer.log(
+            '📄 [ApiService] Body qui a causé l\'erreur: ${response.body}',
+          );
+          return {
+            'success': false,
+            'message': 'Erreur de format de réponse: $jsonError',
+          };
+        }
       } else {
-        final errorData = jsonDecode(response.body);
-        developer.log(
-          '❌ Erreur lors de la récupération des créneaux: ${errorData['message']}',
-        );
-        return {
-          'success': false,
-          'message':
-              errorData['message'] ??
-              'Erreur lors de la récupération des créneaux',
-        };
+        developer.log('❌ [ApiService] Erreur HTTP ${response.statusCode}');
+
+        try {
+          final errorData = jsonDecode(response.body);
+          developer.log('📄 [ApiService] Message d\'erreur parsé: $errorData');
+          return {
+            'success': false,
+            'message':
+                errorData['message'] ?? 'Erreur HTTP ${response.statusCode}',
+          };
+        } catch (e) {
+          developer.log('💥 [ApiService] Impossible de parser l\'erreur: $e');
+          developer.log(
+            '📄 [ApiService] Body d\'erreur brut: ${response.body}',
+          );
+          return {
+            'success': false,
+            'message': 'Erreur HTTP ${response.statusCode}: ${response.body}',
+          };
+        }
       }
-    } catch (e) {
-      developer.log('💥 Exception lors de la récupération des créneaux: $e');
+    } catch (e, stackTrace) {
+      developer.log('💥 [ApiService] Exception dans getTimeslots: $e');
+      developer.log('📚 [ApiService] Stack trace complet: $stackTrace');
       return {
         'success': false,
         'message': 'Erreur de connexion au serveur: $e',
@@ -219,7 +288,7 @@ class ApiService {
   }) async {
     try {
       developer.log('🆕 Création d\'un nouveau créneau: $startTime');
-      developer.log('📡 URL: $baseUrl/admin/timeslots');
+      developer.log('📡 URL: $baseUrl/../admin/timeslots');
 
       final requestBody = {
         'start_time': '$startTime:00', // Ajouter les secondes
@@ -269,7 +338,7 @@ class ApiService {
   }) async {
     try {
       developer.log('✏️ Mise à jour du créneau $timeslotId');
-      developer.log('📡 URL: $baseUrl/admin/timeslots/$timeslotId');
+      developer.log('📡 URL: $baseUrl/../admin/timeslots/$timeslotId');
 
       final requestBody = <String, dynamic>{};
       if (startTime != null) requestBody['start_time'] = '$startTime:00';
@@ -317,10 +386,12 @@ class ApiService {
   }) async {
     try {
       developer.log('🗑️ Suppression du créneau $timeslotId');
-      developer.log('📡 URL: $baseUrl/admin/timeslots/$timeslotId');
+      developer.log('📡 URL: $baseUrl/../admin/timeslots/$timeslotId');
 
       final response = await http.delete(
-        Uri.parse('$baseUrl./admin/timeslots/$timeslotId'),
+        Uri.parse(
+          '${baseUrl.replaceAll('/api', '')}/admin/timeslots/$timeslotId',
+        ),
         headers: _headersWithAuth(token),
       );
 

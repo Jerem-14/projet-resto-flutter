@@ -27,13 +27,18 @@ class _TimeslotsManagementViewState extends State<TimeslotsManagementView> {
   }
 
   Future<void> _loadTimeslots() async {
+    print('🔄 [TimeslotsView] Début du chargement des créneaux...');
+
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
     final authService = Provider.of<AuthService>(context, listen: false);
+    print('🔐 [TimeslotsView] Vérification du token...');
+
     if (authService.jwtToken == null) {
+      print('❌ [TimeslotsView] Token manquant !');
       setState(() {
         isLoading = false;
         errorMessage = 'Token d\'authentification manquant';
@@ -41,28 +46,78 @@ class _TimeslotsManagementViewState extends State<TimeslotsManagementView> {
       return;
     }
 
+    print(
+      '✅ [TimeslotsView] Token présent: ${authService.jwtToken!.substring(0, 20)}...',
+    );
+
     try {
+      print('📡 [TimeslotsView] Appel de ApiService.getTimeslots()...');
       final response = await ApiService.getTimeslots(authService.jwtToken!);
 
+      print('📥 [TimeslotsView] Réponse reçue: $response');
+
       if (response['success']) {
-        final List<dynamic> data = response['data'];
-        setState(() {
-          timeslots = data.map((json) => Timeslot.fromJson(json)).toList();
-          timeslots.sort((a, b) => a.compareTo(b));
-          isLoading = false;
-        });
+        print('✅ [TimeslotsView] Succès de l\'API');
+        final dynamic data = response['data'];
+        print('📊 [TimeslotsView] Type de données reçues: ${data.runtimeType}');
+        print('📊 [TimeslotsView] Contenu des données: $data');
+
+        if (data is List) {
+          print(
+            '📋 [TimeslotsView] Conversion en liste de ${data.length} éléments...',
+          );
+
+          final List<Timeslot> timeslotsList = [];
+          for (int i = 0; i < data.length; i++) {
+            try {
+              print('🔄 [TimeslotsView] Traitement élément $i: ${data[i]}');
+              final timeslot = Timeslot.fromJson(data[i]);
+              timeslotsList.add(timeslot);
+              print(
+                '✅ [TimeslotsView] Élément $i converti: ${timeslot.toString()}',
+              );
+            } catch (e, stackTrace) {
+              print('❌ [TimeslotsView] Erreur conversion élément $i: $e');
+              print('📚 [TimeslotsView] Stack trace: $stackTrace');
+              print('📄 [TimeslotsView] Données problématiques: ${data[i]}');
+            }
+          }
+
+          setState(() {
+            timeslots = timeslotsList;
+            timeslots.sort((a, b) => a.compareTo(b));
+            isLoading = false;
+          });
+
+          print(
+            '✅ [TimeslotsView] ${timeslots.length} créneaux chargés avec succès',
+          );
+        } else {
+          print(
+            '❌ [TimeslotsView] Les données ne sont pas une liste: ${data.runtimeType}',
+          );
+          setState(() {
+            isLoading = false;
+            errorMessage = 'Format de données inattendu: ${data.runtimeType}';
+          });
+        }
       } else {
+        print('❌ [TimeslotsView] Échec de l\'API: ${response['message']}');
         setState(() {
           isLoading = false;
           errorMessage = response['message'] ?? 'Erreur lors du chargement';
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('💥 [TimeslotsView] Exception attrapée: $e');
+      print('📚 [TimeslotsView] Stack trace complet: $stackTrace');
       setState(() {
         isLoading = false;
         errorMessage = 'Erreur de connexion: $e';
       });
     }
+
+    print('🏁 [TimeslotsView] Fin du chargement des créneaux');
   }
 
   Future<void> _showAddTimeslotDialog() async {

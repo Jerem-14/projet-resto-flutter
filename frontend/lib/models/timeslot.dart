@@ -14,13 +14,72 @@ class Timeslot {
   });
 
   factory Timeslot.fromJson(Map<String, dynamic> json) {
-    return Timeslot(
-      id: json['id'],
-      startTime: json['start_time'],
-      isActive: json['is_active'] ?? true,
-      createdAt: DateTime.parse(json['createdAt'] ?? json['created_at']),
-      updatedAt: DateTime.parse(json['updatedAt'] ?? json['updated_at']),
-    );
+    print('🔄 [Timeslot] Début conversion JSON: $json');
+
+    try {
+      // Extraction et validation de l'ID
+      print('📊 [Timeslot] Extraction ID...');
+      final id = json['id'];
+      print('📊 [Timeslot] ID brut: $id (${id.runtimeType})');
+      if (id == null) throw Exception('ID manquant');
+
+      // Extraction et validation du start_time
+      print('📊 [Timeslot] Extraction start_time...');
+      final startTime = json['start_time'];
+      print(
+        '📊 [Timeslot] start_time brut: $startTime (${startTime.runtimeType})',
+      );
+      if (startTime == null) throw Exception('start_time manquant');
+
+      // Extraction et validation de is_active
+      print('📊 [Timeslot] Extraction is_active...');
+      final isActive = json['is_active'] ?? true;
+      print('📊 [Timeslot] is_active: $isActive (${isActive.runtimeType})');
+
+      // Extraction et validation des dates
+      print('📊 [Timeslot] Extraction createdAt...');
+      final createdAtRaw = json['createdAt'] ?? json['created_at'];
+      print(
+        '📊 [Timeslot] createdAt brut: $createdAtRaw (${createdAtRaw?.runtimeType})',
+      );
+      if (createdAtRaw == null) throw Exception('createdAt manquant');
+
+      print('📊 [Timeslot] Extraction updatedAt...');
+      final updatedAtRaw = json['updatedAt'] ?? json['updated_at'];
+      print(
+        '📊 [Timeslot] updatedAt brut: $updatedAtRaw (${updatedAtRaw?.runtimeType})',
+      );
+      if (updatedAtRaw == null) throw Exception('updatedAt manquant');
+
+      // Parsing des dates
+      print('📅 [Timeslot] Parsing createdAt...');
+      final createdAt = DateTime.parse(createdAtRaw.toString());
+      print('📅 [Timeslot] createdAt parsé: $createdAt');
+
+      print('📅 [Timeslot] Parsing updatedAt...');
+      final updatedAt = DateTime.parse(updatedAtRaw.toString());
+      print('📅 [Timeslot] updatedAt parsé: $updatedAt');
+
+      // Création de l'objet
+      print('🏗️ [Timeslot] Création de l\'objet...');
+      final timeslot = Timeslot(
+        id: id is int ? id : int.parse(id.toString()),
+        startTime: startTime.toString(),
+        isActive: isActive is bool
+            ? isActive
+            : (isActive.toString().toLowerCase() == 'true'),
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+
+      print('✅ [Timeslot] Objet créé avec succès: ${timeslot.toString()}');
+      return timeslot;
+    } catch (e, stackTrace) {
+      print('💥 [Timeslot] Erreur lors de la conversion: $e');
+      print('📚 [Timeslot] Stack trace: $stackTrace');
+      print('📄 [Timeslot] JSON problématique: $json');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
