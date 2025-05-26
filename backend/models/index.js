@@ -16,11 +16,29 @@ if (config.use_env_variable) {
 fs
   .readdirSync(__dirname)
   .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js') && (file.indexOf('.test.js') === -1);
   })
   .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
+    const fullPath = path.join(__dirname, file);
+    console.log(`[Model Loader] Processing file: ${file} (Full path: ${fullPath})`);
+
+    // Tenter de supprimer du cache si le fichier est MenuItem.js
+    if (file === 'MenuItem.js' && require.cache[fullPath]) {
+      console.log(`[Model Loader] Deleting ${fullPath} from require cache.`);
+      delete require.cache[fullPath];
+    }
+
+    const modelDefinition = require(fullPath);
+    if (typeof modelDefinition === 'function') {
+      const model = modelDefinition(sequelize);
+      db[model.name] = model;
+      // Si c'est notre MenuItem simplifié, on logue le succès de l'appel
+      if (model.name === 'MenuItem_Test') {
+        console.log(`[DEBUG] MenuItem_Test factory function was successfully called and processed.`);
+      }
+    } else {
+      console.warn(`[Model Loader] ${file} does not export a function or is not a Sequelize model, skipping.`);
+    }
   });
 
 Object.keys(db).forEach(modelName => {
