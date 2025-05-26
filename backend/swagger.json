@@ -32,6 +32,10 @@
     {
       "name": "Restaurants",
       "description": "Gestion des restaurants. Seul l'administrateur peut créer, modifier ou supprimer."
+    },
+    {
+      "name": "Plages horaires",
+      "description": "Gestion des créneaux horaires pour les réservations."
     }
   ],
   "paths": {
@@ -548,6 +552,119 @@
           "404": { "description": "Restaurant non trouvé" }
         }
       }
+    },
+    "/admin/timeslots": {
+      "post": {
+        "tags": ["Plages horaires"],
+        "summary": "Créer un nouveau créneau horaire",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Nécessite le rôle admin.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["start_time"],
+                "properties": {
+                  "start_time": {
+                    "type": "string",
+                    "format": "time",
+                    "example": "19:30:00"
+                  },
+                  "is_active": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Créneau horaire créé",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Timeslot" }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès réservé aux administrateurs" },
+          "400": { "description": "Données invalides" }
+        }
+      }
+    },
+    "/admin/timeslots/{id}": {
+      "patch": {
+        "tags": ["Plages horaires"],
+        "summary": "Modifier un créneau horaire",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Nécessite le rôle admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "start_time": {
+                    "type": "string",
+                    "format": "time",
+                    "example": "20:00:00"
+                  },
+                  "is_active": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Créneau horaire modifié",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Timeslot" }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès réservé aux administrateurs" },
+          "404": { "description": "Créneau non trouvé" }
+        }
+      },
+      "delete": {
+        "tags": ["Plages horaires"],
+        "summary": "Supprimer un créneau horaire",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Nécessite le rôle admin.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Créneau horaire supprimé" },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès réservé aux administrateurs" },
+          "404": { "description": "Créneau non trouvé" }
+        }
+      }
     }
   },
   "components": {
@@ -763,6 +880,16 @@
         "properties": {
           "message": { "type": "string", "example": "Plat créé avec succès" },
           "item": { "$ref": "#/components/schemas/MenuItem" }
+        }
+      },
+      "Timeslot": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "start_time": { "type": "string", "format": "time", "example": "19:30:00" },
+          "is_active": { "type": "boolean", "example": true },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
         }
       }
     },
