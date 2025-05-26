@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/notification_service.dart';
 import '../models/reservation.dart';
 import 'login_view.dart';
+import 'restaurant_admin_view.dart';
 import 'register_view.dart';
 
 class ProfileView extends StatefulWidget {
