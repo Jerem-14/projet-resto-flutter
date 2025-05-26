@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/menu_item.dart';
+import '../services/api_service.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -9,72 +10,10 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  // Fake JSON data for menu items
-  final List<Map<String, dynamic>> _fakeMenuData = [
-    {
-      'id': 1,
-      'category': 'Entrées',
-      'name': 'Salade César',
-      'description': 'Salade fraîche avec croûtons, parmesan et sauce César maison',
-      'price': 12.50,
-      'is_available': true,
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-    {
-      'id': 2,
-      'category': 'Plats principaux',
-      'name': 'Saumon grillé',
-      'description': 'Filet de saumon grillé avec légumes de saison et riz basmati',
-      'price': 24.90,
-      'is_available': true,
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-    {
-      'id': 3,
-      'category': 'Plats principaux',
-      'name': 'Bœuf bourguignon',
-      'description': 'Bœuf mijoté au vin rouge avec pommes de terre et carottes',
-      'price': 22.00,
-      'is_available': false,
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-    {
-      'id': 4,
-      'category': 'Desserts',
-      'name': 'Tarte aux pommes',
-      'description': 'Tarte aux pommes maison avec glace vanille',
-      'price': 8.50,
-      'is_available': true,
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-     {
-      'id': 4,
-      'category': 'Desserts2',
-      'name': 'Tarte aux pommes',
-      'description': 'Tarte aux pommes maison avec glace vanille',
-      'price': 8.50,
-      'is_available': true,
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-    {
-      'id': 5,
-      'category': 'Boissons',
-      'name': 'Vin rouge',
-      'description': 'Bordeaux rouge, millésime 2020',
-      'price': 6.00,
-      'is_available': true,
-      'created_at': '2024-01-15T10:00:00Z',
-      'updated_at': '2024-01-15T10:00:00Z',
-    },
-  ];
-
-  late List<MenuItem> _menuItems;
+  List<MenuItem> _menuItems = [];
   Map<String, List<MenuItem>> _groupedMenuItems = {};
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -82,9 +21,29 @@ class _HomeViewState extends State<HomeView> {
     _loadMenuItems();
   }
 
-  void _loadMenuItems() {
-    _menuItems = _fakeMenuData.map((json) => MenuItem.fromJson(json)).toList();
-    _groupMenuItemsByCategory();
+  Future<void> _loadMenuItems() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await ApiService.getMenu();
+      
+      if (result['success']) {
+        final List<dynamic> menuData = result['data'];
+        _menuItems = menuData.map((json) => MenuItem.fromJson(json)).toList();
+        _groupMenuItemsByCategory();
+      } else {
+        _errorMessage = result['message'] ?? 'Erreur lors du chargement du menu';
+      }
+    } catch (e) {
+      _errorMessage = 'Erreur de connexion: $e';
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _groupMenuItemsByCategory() {
@@ -95,6 +54,10 @@ class _HomeViewState extends State<HomeView> {
       }
       _groupedMenuItems[item.category]!.add(item);
     }
+  }
+
+  Future<void> _refreshMenu() async {
+    await _loadMenuItems();
   }
 
   @override
@@ -110,84 +73,197 @@ class _HomeViewState extends State<HomeView> {
         ),
         backgroundColor: Colors.orange,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: _refreshMenu,
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.orange, Colors.orangeAccent],
+      body: RefreshIndicator(
+        onRefresh: _refreshMenu,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.orange, Colors.orangeAccent],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bienvenue !',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Découvrez notre délicieuse cuisine française dans une ambiance chaleureuse.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Bienvenue !',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+              
+              // Menu Section
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Notre Menu',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Découvrez notre délicieuse cuisine française dans une ambiance chaleureuse.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Menu Section
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Notre Menu',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Menu Items by Category
-                  ..._groupedMenuItems.entries.map((entry) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text(
-                            entry.key,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.orange,
-                            ),
+                    const SizedBox(height: 16),
+                    
+                    // Loading, Error, or Menu Content
+                    if (_isLoading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: CircularProgressIndicator(
+                            color: Colors.orange,
                           ),
                         ),
-                        ...entry.value.map((item) => _buildMenuItem(item)),
-                        const SizedBox(height: 16),
-                      ],
-                    );
-                  }).toList(),
-                ],
+                      )
+                    else if (_errorMessage != null)
+                      _buildErrorWidget()
+                    else if (_groupedMenuItems.isEmpty)
+                      _buildEmptyMenuWidget()
+                    else
+                      // Menu Items by Category
+                      ..._groupedMenuItems.entries.map((entry) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Text(
+                                entry.key,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                            ),
+                            ...entry.value.map((item) => _buildMenuItem(item)),
+                            const SizedBox(height: 16),
+                          ],
+                        );
+                      }).toList(),
+                  ],
+                ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red[300],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Erreur de chargement',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _refreshMenu,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyMenuWidget() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          children: [
+            Icon(
+              Icons.restaurant_menu,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Aucun plat disponible',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Le menu sera bientôt disponible.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _refreshMenu,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Actualiser'),
             ),
           ],
         ),

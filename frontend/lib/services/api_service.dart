@@ -151,4 +151,41 @@ class ApiService {
       };
     }
   }
+
+  // Get menu items
+  static Future<Map<String, dynamic>> getMenu() async {
+    try {
+      developer.log('🍽️ Récupération du menu');
+      developer.log('📡 URL: $baseUrl/menu');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/menu'),
+        headers: _headers,
+      );
+
+      developer.log('📥 Status Code: ${response.statusCode}');
+      developer.log('📥 Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        developer.log('✅ Menu récupéré avec succès (${data.length} éléments)');
+        return {
+          'success': true,
+          'data': data,
+        };
+      } else {
+        developer.log('❌ Erreur lors de la récupération du menu');
+        return {
+          'success': false,
+          'message': 'Erreur lors de la récupération du menu',
+        };
+      }
+    } catch (e) {
+      developer.log('💥 Exception lors de la récupération du menu: $e');
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur: $e',
+      };
+    }
+  }
 } 
