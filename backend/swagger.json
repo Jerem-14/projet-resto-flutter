@@ -8,6 +8,16 @@
   "servers": [
     { "url": "/api" }
   ],
+  "tags": [
+    {
+      "name": "Authentification",
+      "description": "Gestion de l'inscription, connexion, profil et déconnexion utilisateur."
+    },
+    {
+      "name": "Système",
+      "description": "Endpoints système pour la santé du serveur et la base de données."
+    }
+  ],
   "paths": {
     "/auth/register": {
       "post": {
@@ -33,7 +43,8 @@
           },
           "409": { "description": "Email déjà utilisé" },
           "400": { "description": "Champs manquants" }
-        }
+        },
+        "tags": ["Authentification"]
       }
     },
     "/auth/login": {
@@ -60,7 +71,8 @@
           },
           "401": { "description": "Identifiants invalides" },
           "400": { "description": "Champs manquants" }
-        }
+        },
+        "tags": ["Authentification"]
       }
     },
     "/auth/profile": {
@@ -77,7 +89,8 @@
             }
           },
           "401": { "description": "Token manquant ou invalide" }
-        }
+        },
+        "tags": ["Authentification"]
       }
     },
     "/auth/logout": {
@@ -93,7 +106,8 @@
               }
             }
           }
-        }
+        },
+        "tags": ["Authentification"]
       }
     },
     "/health": {
@@ -115,7 +129,8 @@
               }
             }
           }
-        }
+        },
+        "tags": ["Système"]
       }
     },
     "/db/test": {
@@ -147,7 +162,8 @@
             }
           },
           "500": { "description": "Erreur de connexion à la base de données" }
-        }
+        },
+        "tags": ["Système"]
       }
     }
   },
