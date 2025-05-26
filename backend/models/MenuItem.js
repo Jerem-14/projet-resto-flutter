@@ -1,6 +1,3 @@
-<<<<<<< Updated upstream
- 
-=======
 const { Model, DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -57,4 +54,3 @@ module.exports = (sequelize) => {
 
   return MenuItem;
 }; 
->>>>>>> Stashed changes
