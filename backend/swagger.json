@@ -16,6 +16,10 @@
     {
       "name": "Système",
       "description": "Endpoints système pour la santé du serveur et la base de données."
+    },
+    {
+      "name": "Restaurants",
+      "description": "Gestion des restaurants. Seul l'administrateur peut créer, modifier ou supprimer."
     }
   ],
   "paths": {
@@ -165,6 +169,114 @@
         },
         "tags": ["Système"]
       }
+    },
+    "/restaurants": {
+      "get": {
+        "tags": ["Restaurants"],
+        "summary": "Lister tous les restaurants",
+        "responses": {
+          "200": {
+            "description": "Liste des restaurants",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Restaurant" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Restaurants"],
+        "summary": "Créer un restaurant (admin seulement)",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Nécessite le rôle admin.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RestaurantCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Restaurant créé",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Restaurant" }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès réservé aux administrateurs" },
+          "400": { "description": "Champs requis manquants" }
+        }
+      }
+    },
+    "/restaurants/{id}": {
+      "get": {
+        "tags": ["Restaurants"],
+        "summary": "Voir un restaurant",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Détail du restaurant",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Restaurant" }
+              }
+            }
+          },
+          "404": { "description": "Restaurant non trouvé" }
+        }
+      },
+      "patch": {
+        "tags": ["Restaurants"],
+        "summary": "Modifier un restaurant (admin seulement)",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Nécessite le rôle admin.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RestaurantUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Restaurant modifié",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Restaurant" }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès réservé aux administrateurs" },
+          "404": { "description": "Restaurant non trouvé" }
+        }
+      },
+      "delete": {
+        "tags": ["Restaurants"],
+        "summary": "Supprimer un restaurant (admin seulement)",
+        "security": [{ "bearerAuth": [] }],
+        "description": "Nécessite le rôle admin.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Restaurant supprimé" },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès réservé aux administrateurs" },
+          "404": { "description": "Restaurant non trouvé" }
+        }
+      }
     }
   },
   "components": {
@@ -204,6 +316,40 @@
           "last_name": { "type": "string", "example": "Doe" },
           "phone": { "type": "string", "example": "0600000000" },
           "role": { "type": "string", "example": "client" }
+        }
+      },
+      "Restaurant": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "restaurant_name": { "type": "string", "example": "Le Gourmet" },
+          "total_capacity": { "type": "integer", "example": 50 },
+          "phone": { "type": "string", "example": "0102030405" },
+          "address": { "type": "string", "example": "1 rue de Paris, 75000 Paris" },
+          "description": { "type": "string", "example": "Restaurant gastronomique" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RestaurantCreate": {
+        "type": "object",
+        "required": ["restaurant_name", "total_capacity", "phone", "address"],
+        "properties": {
+          "restaurant_name": { "type": "string", "example": "Le Gourmet" },
+          "total_capacity": { "type": "integer", "example": 50 },
+          "phone": { "type": "string", "example": "0102030405" },
+          "address": { "type": "string", "example": "1 rue de Paris, 75000 Paris" },
+          "description": { "type": "string", "example": "Restaurant gastronomique" }
+        }
+      },
+      "RestaurantUpdate": {
+        "type": "object",
+        "properties": {
+          "restaurant_name": { "type": "string", "example": "Le Gourmet" },
+          "total_capacity": { "type": "integer", "example": 60 },
+          "phone": { "type": "string", "example": "0102030405" },
+          "address": { "type": "string", "example": "2 avenue de Lyon, 69000 Lyon" },
+          "description": { "type": "string", "example": "Nouveau concept" }
         }
       }
     },
