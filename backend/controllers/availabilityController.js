@@ -77,6 +77,7 @@ exports.getAvailability = async (req, res) => {
         const availablePlaces = Math.max(0, totalCapacity - reservedGuests);
 
         return {
+          id: timeslot.id,
           time: formatTime(timeslot.start_time),
           total_places: totalCapacity,
           available_places: availablePlaces

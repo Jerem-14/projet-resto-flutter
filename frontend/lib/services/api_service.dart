@@ -188,4 +188,127 @@ class ApiService {
       };
     }
   }
+
+  // Get availability data for reservations
+  static Future<Map<String, dynamic>> getAvailability() async {
+    try {
+      developer.log('📅 Récupération des disponibilités');
+      developer.log('📡 URL: $baseUrl/availability');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/availability'),
+        headers: _headers,
+      );
+
+      developer.log('📥 Status Code: ${response.statusCode}');
+      developer.log('📥 Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        developer.log('✅ Disponibilités récupérées avec succès (${data.length} jours)');
+        return {
+          'success': true,
+          'data': data,
+        };
+      } else {
+        developer.log('❌ Erreur lors de la récupération des disponibilités');
+        return {
+          'success': false,
+          'message': 'Erreur lors de la récupération des disponibilités',
+        };
+      }
+    } catch (e) {
+      developer.log('💥 Exception lors de la récupération des disponibilités: $e');
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur: $e',
+      };
+    }
+  }
+
+  // Create a new reservation
+  static Future<Map<String, dynamic>> createReservation({
+    required int timeslotId,
+    required String reservationDate,
+    required int numberOfGuests,
+    required String token,
+  }) async {
+    try {
+      developer.log('🍽️ Création d\'une réservation');
+      developer.log('📡 URL: $baseUrl/reservations');
+      developer.log('📊 Data: timeslot_id=$timeslotId, date=$reservationDate, guests=$numberOfGuests');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/reservations'),
+        headers: _headersWithAuth(token),
+        body: jsonEncode({
+          'timeslot_id': timeslotId,
+          'reservation_date': reservationDate,
+          'number_of_guests': numberOfGuests,
+        }),
+      );
+
+      developer.log('📥 Status Code: ${response.statusCode}');
+      developer.log('📥 Response Body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        developer.log('✅ Réservation créée avec succès');
+        return {
+          'success': true,
+          'data': data,
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        developer.log('❌ Erreur lors de la création de la réservation: ${errorData['error']}');
+        return {
+          'success': false,
+          'message': errorData['error'] ?? 'Erreur lors de la création de la réservation',
+        };
+      }
+    } catch (e) {
+      developer.log('💥 Exception lors de la création de la réservation: $e');
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur: $e',
+      };
+    }
+  }
+
+  // Get user's reservations
+  static Future<Map<String, dynamic>> getUserReservations(String token) async {
+    try {
+      developer.log('📋 Récupération des réservations utilisateur');
+      developer.log('📡 URL: $baseUrl/reservations/my');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/reservations/my'),
+        headers: _headersWithAuth(token),
+      );
+
+      developer.log('📥 Status Code: ${response.statusCode}');
+      developer.log('📥 Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        developer.log('✅ Réservations récupérées avec succès (${data.length} réservations)');
+        return {
+          'success': true,
+          'data': data,
+        };
+      } else {
+        developer.log('❌ Erreur lors de la récupération des réservations');
+        return {
+          'success': false,
+          'message': 'Erreur lors de la récupération des réservations',
+        };
+      }
+    } catch (e) {
+      developer.log('💥 Exception lors de la récupération des réservations: $e');
+      return {
+        'success': false,
+        'message': 'Erreur de connexion au serveur: $e',
+      };
+    }
+  }
 } 

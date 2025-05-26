@@ -12,6 +12,7 @@ class AuthService extends ChangeNotifier {
   // Getters
   User? get currentUser => _currentUser;
   String? get jwtToken => _jwtToken;
+  String? get token => _jwtToken; // Alias for jwtToken for consistency
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _currentUser != null && _jwtToken != null;
   bool get isAdmin => _currentUser?.isAdmin ?? false;
