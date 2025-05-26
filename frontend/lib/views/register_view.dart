@@ -14,6 +14,7 @@ class _RegisterViewState extends State<RegisterView> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -24,6 +25,7 @@ class _RegisterViewState extends State<RegisterView> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -40,6 +42,7 @@ class _RegisterViewState extends State<RegisterView> {
       _passwordController.text,
       _firstNameController.text.trim(),
       _lastNameController.text.trim(),
+      _phoneController.text.trim(),
     );
 
     if (mounted) {
@@ -158,6 +161,33 @@ class _RegisterViewState extends State<RegisterView> {
                       }
                       if (value.length < 2) {
                         return 'Le nom doit contenir au moins 2 caractères';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Phone field
+                  TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: 'Téléphone',
+                      prefixIcon: const Icon(Icons.phone),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.orange),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Veuillez entrer votre numéro de téléphone';
+                      }
+                      if (value.length < 10) {
+                        return 'Le numéro de téléphone doit contenir au moins 10 caractères';
                       }
                       return null;
                     },

@@ -103,38 +103,6 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   const SizedBox(height: 40),
 
-                  // Demo credentials info
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                    ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Comptes de démonstration:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Utilisateur: user@example.com / password123',
-                          style: TextStyle(fontSize: 12, color: Colors.blue),
-                        ),
-                        Text(
-                          'Admin: admin@example.com / admin123',
-                          style: TextStyle(fontSize: 12, color: Colors.blue),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
                   // Email field
                   TextFormField(
                     controller: _emailController,

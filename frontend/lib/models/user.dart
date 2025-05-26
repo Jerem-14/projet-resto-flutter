@@ -3,7 +3,8 @@ class User {
   final String email;
   final String firstName;
   final String lastName;
-  final String role; // 'user' or 'admin'
+  final String phone;
+  final String role; // 'client' or 'admin'
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -12,6 +13,7 @@ class User {
     required this.email,
     required this.firstName,
     required this.lastName,
+    required this.phone,
     required this.role,
     required this.createdAt,
     required this.updatedAt,
@@ -23,6 +25,7 @@ class User {
       email: json['email'],
       firstName: json['first_name'],
       lastName: json['last_name'],
+      phone: json['phone'],
       role: json['role'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
@@ -35,6 +38,7 @@ class User {
       'email': email,
       'first_name': firstName,
       'last_name': lastName,
+      'phone': phone,
       'role': role,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -43,4 +47,5 @@ class User {
 
   String get fullName => '$firstName $lastName';
   bool get isAdmin => role == 'admin';
+  bool get isClient => role == 'client';
 } 
