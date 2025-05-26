@@ -56,6 +56,53 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
+  Widget _buildCredentialRow(String role, String email, String password) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              role,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[800],
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              email,
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 12,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              password,
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 12,
+                fontFamily: 'monospace',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +127,41 @@ class _LoginViewState extends State<LoginView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
+                  
+                  // Test credentials info
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Identifiants de test',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[700],
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _buildCredentialRow('👤 Utilisateur', 'user@mail.com', 'user123'),
+                        const SizedBox(height: 8),
+                        _buildCredentialRow('🔧 Administrateur', 'admin@mail.com', 'admin123'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 30),
                   
                   // Welcome text
                   const Text(

@@ -289,32 +289,17 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
           ),
+          
+          // User Reservations Section
+          _buildReservationsSection(),
 
           // Profile options
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildProfileOption(
-                  icon: Icons.restaurant_menu,
-                  title: 'Actualiser les réservations',
-                  subtitle: 'Recharger la liste de vos réservations',
-                  onTap: () {
-                    setState(() {
-                      _hasLoadedReservations = false;
-                    });
-                    _loadUserReservations();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Réservations actualisées'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-                ),
-
-                // Admin-only backlog option
-                if (user.isAdmin)
+                // Admin-only options
+                if (user.isAdmin) ...[
                   _buildProfileOption(
                     icon: Icons.restaurant,
                     title: 'Gestion Restaurant',
@@ -328,6 +313,7 @@ class _ProfileViewState extends State<ProfileView> {
                     },
                     isAdmin: true,
                   ),
+                ],
 
                 const SizedBox(height: 32),
 
