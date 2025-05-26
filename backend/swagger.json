@@ -32,6 +32,10 @@
     {
       "name": "Restaurants",
       "description": "Gestion des restaurants. Seul l'administrateur peut créer, modifier ou supprimer."
+    },
+    {
+      "name": "Plages horaires",
+      "description": "Gestion des créneaux horaires pour les réservations."
     }
   ],
   "paths": {
@@ -661,10 +665,9 @@
           "404": { "description": "Créneau non trouvé" }
         }
       }
-  }
-},
-
-"components": {
+    }
+  },
+  "components": {
     "schemas": {
       "RegisterRequest": {
         "type": "object",
@@ -737,7 +740,6 @@
           "description": { "type": "string", "example": "Nouveau concept" }
         }
       },
-<<<<<<< Updated upstream
       "MenuCategory": {
         "type": "object",
         "properties": {
@@ -879,7 +881,7 @@
           "message": { "type": "string", "example": "Plat créé avec succès" },
           "item": { "$ref": "#/components/schemas/MenuItem" }
         }
-=======
+      },
       "Timeslot": {
         "type": "object",
         "properties": {
@@ -889,7 +891,6 @@
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
         }
->>>>>>> Stashed changes
       }
     },
     "securitySchemes": {
